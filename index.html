@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareFlow AI — IS4261 Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal:#0B7B6B;--teal-light:#E6F4F1;--teal-mid:#1AA38C;
+    --navy:#0D2137;--navy-soft:#1A3A52;
+    --sand:#F5F1EB;--warm-white:#FAFAF8;
+    --text:#1C2B38;--text-soft:#5A7080;--border:#DDE4E8;
+    --red:#D94F3D;--amber:#E8974A;--green:#2E9E6B;
+    --shadow:0 2px 16px rgba(13,33,55,0.08);
+    --shadow-lg:0 8px 40px rgba(13,33,55,0.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--sand);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+  .topnav{background:var(--navy);padding:0 22px;display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.25);}
+  .brand{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:#fff;margin-right:24px;white-space:nowrap;}
+  .brand span{color:var(--teal-mid);}
+  .nav-tabs{display:flex;gap:3px;flex:1;overflow-x:auto;}
+  .nav-tab{background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+  .nav-tab:hover{background:rgba(255,255,255,0.08);color:#fff;}
+  .nav-tab.active{background:var(--teal);color:#fff;}
+  .nav-badge{display:inline-block;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:4px;vertical-align:middle;}
+  .mvp-pill{font-size:9px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.45);padding:1px 5px;border-radius:3px;margin-left:4px;letter-spacing:0.3px;vertical-align:middle;}
+
+  .panel{display:none;flex:1;}
+  .panel.active{display:flex;flex-direction:column;}
+
+  /* SHARED */
+  .card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);}
+  .card-header{padding:11px 15px;background:var(--navy);color:#fff;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;}
+  .tag{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;display:inline-block;}
+  .tag.green{background:#D5F5E3;color:#1E8449;}
+  .tag.amber{background:#FEF3E2;color:#B5621E;}
+  .tag.red{background:#FDECEA;color:#A93226;}
+  .tag.blue{background:#D6EAF8;color:#1A6FA0;}
+  .risk-banner{background:#FFF0EE;border:1.5px solid #F1A9A0;border-radius:10px;padding:13px 15px;display:flex;gap:12px;}
+  .risk-icon{font-size:18px;flex-shrink:0;}
+  .risk-title{font-weight:600;font-size:13px;color:var(--red);margin-bottom:2px;}
+  .risk-body{font-size:12.5px;color:var(--text);line-height:1.5;}
+  .act-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:9px 14px;border-radius:8px;cursor:pointer;border:none;transition:all 0.18s;}
+  .act-btn.primary{background:var(--teal);color:#fff;}
+  .act-btn.primary:hover{background:#095F53;}
+  .act-btn.secondary{background:#fff;color:var(--navy);border:1.5px solid var(--border);}
+  .act-btn.secondary:hover{border-color:var(--teal);color:var(--teal);}
+  .act-btn.approve{background:var(--green);color:#fff;}
+  .act-btn.approve:hover{background:#237A52;}
+  .act-btn.danger{background:#FFF0EE;color:var(--red);border:1.5px solid #F1A9A0;}
+  .traceability-note{font-size:11px;color:var(--teal);font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:6px;text-decoration:underline;text-decoration-style:dotted;}
+  .hidden{display:none!important;}
+  .fade-in{animation:fadeIn 0.35s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:#CBD5DB;border-radius:3px;}
+
+  /* ── TAB 1: NUDGE CENTRE ── */
+  .nudge-layout{display:grid;grid-template-columns:370px 1fr;height:calc(100vh - 56px);overflow:hidden;}
+  .nudge-list-col{background:var(--warm-white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+  .nudge-list-header{padding:15px 18px;border-bottom:1px solid var(--border);}
+  .nudge-list-header h3{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;}
+  .filter-row{display:flex;gap:5px;flex-wrap:wrap;}
+  .filter-btn{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text-soft);transition:all 0.15s;}
+  .filter-btn.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .nudge-list{flex:1;overflow-y:auto;padding:9px;}
+  .nudge-item{padding:11px 13px;border-radius:9px;border:1.5px solid var(--border);background:#fff;margin-bottom:6px;cursor:pointer;transition:all 0.15s;}
+  .nudge-item:hover{border-color:var(--teal);}
+  .nudge-item.active{border-color:var(--teal);box-shadow:0 0 0 3px rgba(11,123,107,0.1);}
+  .nudge-item-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+  .nudge-item-name{font-weight:600;font-size:12.5px;color:var(--navy);}
+  .nudge-item-type{font-size:11px;color:var(--text-soft);margin-top:1px;}
+  .nudge-item-time{font-size:11px;color:var(--text-soft);margin-top:5px;}
+
+  .nudge-detail-col{display:flex;flex-direction:column;overflow-y:auto;padding:24px 28px;gap:18px;background:var(--sand);}
+  .stat-bar{display:flex;gap:10px;}
+  .stat-pill{background:#fff;border:1px solid var(--border);border-radius:9px;padding:11px 16px;display:flex;align-items:center;gap:10px;flex:1;}
+  .sp-val{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:var(--navy);line-height:1;}
+  .sp-lbl{font-size:10px;color:var(--text-soft);margin-top:2px;}
+  .sp-val.green{color:var(--green);}
+  .sp-val.amber{color:var(--amber);}
+  .sp-val.red{color:var(--red);}
+
+  .nudge-phone-mock{background:#1C1C1E;border-radius:28px;padding:24px 18px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+  .phone-status{display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:10px;padding:0 3px;}
+  .phone-app-bar{display:flex;align-items:center;gap:9px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);}
+  .phone-app-icon{width:30px;height:30px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .phone-app-name{color:#fff;font-size:13px;font-weight:600;}
+  .phone-app-sub{color:rgba(255,255,255,0.45);font-size:10px;}
+  .phone-msg{background:#2C2C2E;border-radius:12px 12px 12px 3px;padding:11px 13px;color:#fff;font-size:12.5px;line-height:1.55;max-width:92%;}
+  .phone-msg-time{font-size:10px;color:rgba(255,255,255,0.3);margin-top:5px;margin-left:3px;}
+  .phone-read{font-size:10px;color:rgba(255,255,255,0.28);text-align:right;margin-top:3px;}
+
+  /* NEW: Personalisation rationale box */
+  .pers-box{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .pers-box-header{background:var(--navy);color:#fff;padding:10px 14px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.7px;display:flex;align-items:center;gap:6px;}
+  .pers-box-body{padding:12px 14px;display:flex;flex-direction:column;gap:6px;}
+  .pers-reason{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text);}
+  .pers-reason-icon{font-size:13px;flex-shrink:0;margin-top:1px;}
+  .pers-quality{margin-top:6px;padding-top:9px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;}
+  .pers-qcheck{font-size:11px;color:var(--green);font-weight:500;display:flex;align-items:center;gap:4px;}
+
+  .activity-log{background:#fff;border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+  .log-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);font-size:12px;}
+  .log-row:last-child{border-bottom:none;}
+  .log-time{color:var(--text-soft);font-size:10px;width:48px;flex-shrink:0;font-family:'Courier New',monospace;}
+  .log-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .log-dot.green{background:var(--green);}
+  .log-dot.amber{background:var(--amber);}
+  .log-dot.red{background:var(--red);}
+  .log-text{flex:1;color:var(--text);}
+  .log-tag{font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;}
+  .log-tag.auto{background:#EAF7F0;color:var(--green);}
+
+  /* ── TAB 2: CHAT ── */
+  .chat-layout{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 56px);}
+  .chat-sidebar{background:var(--warm-white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+  .sidebar-section{padding:14px 16px;border-bottom:1px solid var(--border);}
+  .sidebar-section h4{font-size:10px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:9px;}
+  .patient-card{background:var(--teal-light);border:1px solid #B2D8D2;border-radius:9px;padding:12px;}
+  .patient-card .name{font-weight:600;font-size:13.5px;color:var(--navy);}
+  .patient-card .detail{font-size:11.5px;color:var(--teal);margin-top:2px;}
+  .patient-card .tags{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap;}
+  .appt-item{display:flex;justify-content:space-between;align-items:center;padding:7px 9px;background:var(--sand);border-radius:7px;margin-bottom:5px;}
+  .appt-name{font-size:12.5px;font-weight:500;}
+  .appt-date{font-size:11px;color:var(--text-soft);margin-top:1px;}
+  .appt-status{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;}
+  .appt-status.confirmed{background:#D5F5E3;color:#1E8449;}
+  .appt-status.pending{background:#FEF9E7;color:#B7950B;}
+
+  /* NEW: Intake steps tracker */
+  .intake-steps{padding:10px 20px;border-bottom:1px solid var(--border);background:#F8FFFE;display:flex;align-items:center;gap:0;}
+  .intake-step{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:var(--text-soft);padding:4px 8px;border-radius:20px;transition:all 0.3s;}
+  .intake-step.done{color:var(--green);background:#EAF7F0;}
+  .intake-step.active{color:var(--teal);background:var(--teal-light);font-weight:600;}
+  .intake-sep{font-size:11px;color:#CBD5DB;margin:0 2px;}
+  .intake-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-soft);margin-right:8px;}
+
+  .chat-main{display:flex;flex-direction:column;background:var(--warm-white);}
+  .chat-header{padding:13px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px;background:#fff;}
+  .chat-avatar{width:34px;height:34px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+  .chat-header .title{font-weight:600;font-size:13.5px;}
+  .chat-header .sub{font-size:11px;color:var(--green);font-weight:500;}
+  .chat-header .sub::before{content:'● ';}
+  .chat-messages{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px;}
+  .msg{display:flex;gap:8px;max-width:72%;}
+  .msg.bot{align-self:flex-start;}
+  .msg.user{align-self:flex-end;flex-direction:row-reverse;}
+  .msg-qr-row{align-self:flex-start;padding-left:38px;max-width:90%;display:flex;flex-wrap:wrap;gap:6px;}
+  .msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px;}
+  .msg.bot .msg-avatar{background:var(--teal);}
+  .msg.user .msg-avatar{background:var(--navy-soft);}
+  .msg-bubble{padding:10px 14px;border-radius:15px;font-size:13px;line-height:1.55;}
+  .msg.bot .msg-bubble{background:#fff;border:1px solid var(--border);border-top-left-radius:3px;box-shadow:var(--shadow);}
+  .msg.user .msg-bubble{background:var(--teal);color:#fff;border-top-right-radius:3px;}
+  .msg-time{font-size:10px;color:var(--text-soft);margin-top:3px;}
+  .msg.user .msg-time{text-align:right;}
+  .qr-btn{background:#fff;border:1.5px solid var(--teal);color:var(--teal);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all 0.15s;}
+  .qr-btn:hover{background:var(--teal);color:#fff;}
+  .confirm-card{background:var(--teal-light);border:1.5px solid #8EC8BF;border-radius:11px;padding:12px 14px;font-size:12.5px;}
+  .cc-row{display:flex;justify-content:space-between;margin-bottom:5px;gap:8px;}
+  .cc-label{color:var(--text-soft);flex-shrink:0;}
+  .cc-val{font-weight:600;color:var(--navy);text-align:right;}
+  .cc-actions{display:flex;gap:6px;margin-top:10px;}
+  .btn-confirm{background:var(--teal);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;padding:7px 16px;border-radius:7px;cursor:pointer;}
+  .btn-confirm:hover{background:#095F53;}
+  .btn-cancel{background:#fff;color:var(--text-soft);border:1px solid var(--border);font-family:'DM Sans',sans-serif;font-size:12.5px;padding:7px 13px;border-radius:7px;cursor:pointer;}
+  .nudge-preview{background:#1C1C1E;border-radius:13px;padding:12px 14px;font-size:12.5px;}
+  .np-header{font-size:10px;color:rgba(255,255,255,0.38);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;}
+  .np-app{font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:2px;}
+  .np-title{font-weight:600;font-size:13px;color:#fff;margin-bottom:3px;}
+  .np-body{font-size:12.5px;color:rgba(255,255,255,0.85);line-height:1.5;}
+  .alert-bubble{background:#FFF8E6;border:1px solid #F0C060;border-radius:9px;padding:11px 13px;font-size:12.5px;}
+  .alert-bubble .alert-title{font-weight:600;color:#8B5E00;margin-bottom:4px;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;}
+  .typing-indicator{display:flex;gap:4px;align-items:center;padding:7px 11px;}
+  .typing-dot{width:6px;height:6px;background:var(--text-soft);border-radius:50%;animation:bounce 1.2s infinite;}
+  .typing-dot:nth-child(2){animation-delay:0.2s;}
+  .typing-dot:nth-child(3){animation-delay:0.4s;}
+  @keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
+  .chat-input-area{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;background:#fff;}
+  .chat-input{flex:1;border:1.5px solid var(--border);border-radius:22px;padding:8px 15px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.18s;}
+  .chat-input:focus{border-color:var(--teal);}
+  .send-btn{background:var(--teal);color:#fff;border:none;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .send-btn:hover{background:#095F53;}
+
+  /* ── TAB 3: OPS WORKBENCH ── */
+  .ops-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 56px);overflow:hidden;}
+  .ops-queue{background:var(--warm-white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+  .ops-queue-header{padding:14px 16px;border-bottom:1px solid var(--border);}
+  .ops-queue-header h3{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+  .ops-queue-header .sub{font-size:11px;color:var(--text-soft);}
+  .ops-stats{display:flex;gap:7px;margin-top:10px;}
+  .ops-stat{flex:1;background:var(--sand);border-radius:7px;padding:8px;text-align:center;}
+  .ops-stat .val{font-size:19px;font-weight:600;color:var(--navy);font-family:'Fraunces',serif;}
+  .ops-stat .lbl{font-size:9px;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.3px;margin-top:1px;}
+  .ops-stat.red .val{color:var(--red);}
+  .ops-stat.amber .val{color:var(--amber);}
+  .ops-list{flex:1;overflow-y:auto;padding:9px;}
+  .ops-item{background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:12px;margin-bottom:6px;cursor:pointer;transition:all 0.15s;position:relative;}
+  .ops-item:hover{border-color:var(--teal);}
+  .ops-item.active{border-color:var(--teal);box-shadow:0 0 0 3px rgba(11,123,107,0.1);}
+  .ops-item-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .ops-item-name{font-weight:600;font-size:12.5px;color:var(--navy);}
+  .ops-item-type{font-size:11px;color:var(--text-soft);margin-top:2px;}
+  .severity{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase;}
+  .severity.high{background:#FDECEA;color:var(--red);}
+  .severity.medium{background:#FEF3E2;color:#B5621E;}
+  .severity.low{background:#EAF7F0;color:#1E8449;}
+  .ops-item-reason{margin-top:6px;font-size:11px;color:var(--text-soft);background:var(--sand);border-radius:5px;padding:5px 8px;}
+  .ops-item-time{font-size:10px;color:var(--text-soft);margin-top:6px;}
+  .unread-dot{position:absolute;top:12px;right:12px;width:7px;height:7px;background:var(--teal);border-radius:50%;}
+  .ops-detail{display:flex;flex-direction:column;overflow-y:auto;padding:22px 26px;gap:14px;background:var(--sand);}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .detail-card{background:#fff;border:1px solid var(--border);border-radius:11px;padding:14px 16px;}
+  .detail-card h4{font-size:10px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:9px;}
+  .detail-row{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;gap:8px;}
+  .detail-row .dl{color:var(--text-soft);flex-shrink:0;}
+  .detail-row .dv{font-weight:500;color:var(--navy);text-align:right;}
+  .detail-row .dv.red{color:var(--red);}
+  .detail-row .dv.amber{color:#B5621E;}
+  .detail-row .dv.green{color:var(--green);}
+  .human-loop-banner{background:#E8F4FD;border:1.5px solid #A9CCE3;border-radius:9px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;}
+  .hl-icon{font-size:16px;flex-shrink:0;}
+  .hl-title{font-weight:600;font-size:12.5px;color:#1A5276;margin-bottom:2px;}
+  .hl-body{font-size:12px;color:var(--text);line-height:1.5;}
+
+  /* NEW: Rules check banner */
+  .rules-check{background:#F0FBF7;border:1.5px solid #9ADFC5;border-radius:9px;padding:11px 14px;}
+  .rules-check-title{font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+  .rules-check-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;font-size:12px;}
+  .rules-check-row:last-child{margin-bottom:0;}
+  .rc-icon{font-size:12px;flex-shrink:0;margin-top:1px;}
+  .rc-label{font-weight:600;color:var(--navy);min-width:85px;flex-shrink:0;}
+  .rc-value{color:var(--text-soft);}
+  .rc-fail{color:var(--red);font-weight:500;}
+
+  .ops-activity-log{background:var(--navy);border-radius:11px;padding:14px 16px;}
+  .ops-activity-log h4{font-size:10px;font-weight:600;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:9px;}
+  .oal-row{display:flex;align-items:center;gap:9px;font-size:11.5px;color:rgba(255,255,255,0.8);padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.07);}
+  .oal-row:last-child{border-bottom:none;}
+  .oal-time{color:rgba(255,255,255,0.32);font-family:'Courier New',monospace;font-size:10px;width:44px;flex-shrink:0;}
+  .oal-icon{font-size:12px;flex-shrink:0;}
+
+  /* ── TAB 4: OCR ── */
+  .ocr-layout{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 56px);overflow:hidden;}
+  .ocr-left{padding:28px 26px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;border-right:1px solid var(--border);background:var(--warm-white);}
+  .ocr-right{padding:28px 26px;overflow-y:auto;background:var(--sand);position:relative;}
+  .ocr-header h2{font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+  .ocr-header p{font-size:12.5px;color:var(--text-soft);line-height:1.5;}
+  .upload-zone{border:2px dashed #B2C8D4;border-radius:12px;padding:36px 20px;text-align:center;background:var(--sand);cursor:pointer;transition:all 0.2s;position:relative;}
+  .upload-zone:hover{border-color:var(--teal);background:var(--teal-light);}
+  .upload-zone .uz-icon{font-size:32px;margin-bottom:8px;}
+  .upload-zone .uz-title{font-weight:600;font-size:14px;color:var(--navy);margin-bottom:3px;}
+  .upload-zone .uz-sub{font-size:12px;color:var(--text-soft);}
+  .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .scan-btn{background:var(--teal);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:600;padding:12px 20px;border-radius:9px;cursor:pointer;transition:background 0.18s;display:flex;align-items:center;gap:7px;justify-content:center;}
+  .scan-btn:hover{background:#095F53;}
+  .scan-btn:disabled{background:#9ABFBA;cursor:not-allowed;}
+  .doc-preview{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;}
+  .doc-preview-header{background:var(--navy);color:#fff;padding:10px 14px;font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:7px;}
+  .doc-content{padding:18px;font-size:12.5px;line-height:1.7;color:var(--text);font-family:'Courier New',monospace;background:#FEFCF9;white-space:pre-line;max-height:240px;overflow-y:auto;}
+  .processing-overlay{display:none;background:rgba(13,33,55,0.6);border-radius:12px;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff;font-weight:500;font-size:14px;z-index:10;}
+  .processing-overlay.show{display:flex;}
+  .spinner{width:34px;height:34px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .ocr-result{display:none;flex-direction:column;gap:14px;}
+  .ocr-result.show{display:flex;}
+  .result-section{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .result-section-header{padding:10px 14px;background:var(--navy);color:#fff;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.7px;display:flex;align-items:center;gap:7px;}
+  .result-row{display:flex;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12.5px;align-items:flex-start;gap:10px;}
+  .result-row:last-child{border-bottom:none;}
+  .result-row .rl{color:var(--text-soft);width:130px;flex-shrink:0;}
+  .result-row .rv{font-weight:500;color:var(--navy);flex:1;}
+  .result-row .rv.flag{color:var(--red);}
+  .confidence-bar{height:4px;background:#E0E0E0;border-radius:2px;margin-top:4px;overflow:hidden;}
+  .confidence-fill{height:100%;background:var(--green);border-radius:2px;transition:width 1s ease;}
+
+  /* ── TAB 5: CLINICAL SNAPSHOT ── */
+  .clin-layout{height:calc(100vh - 56px);overflow-y:auto;padding:24px 32px;background:var(--sand);display:flex;flex-direction:column;gap:16px;}
+  .clin-topbar{display:flex;justify-content:space-between;align-items:center;}
+  .clin-topbar h2{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--navy);}
+  .clin-topbar .sub{font-size:12.5px;color:var(--text-soft);}
+  .timer-badge{background:var(--navy);color:#fff;padding:7px 15px;border-radius:8px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+  .timer-badge .count{font-family:'Fraunces',serif;font-size:22px;color:var(--teal-mid);}
+  .clin-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;}
+  .clin-col{display:flex;flex-direction:column;gap:14px;}
+  .clin-card{background:#fff;border:1px solid var(--border);border-radius:13px;overflow:hidden;box-shadow:var(--shadow);}
+  .clin-card-header{padding:11px 16px;background:var(--navy);color:#fff;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;}
+  .clin-card-body{padding:16px;}
+  .vitals-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .vital-item{background:var(--sand);border-radius:9px;padding:13px;text-align:center;}
+  .vital-item .vi-val{font-size:24px;font-weight:700;font-family:'Fraunces',serif;color:var(--navy);line-height:1;}
+  .vital-item .vi-unit{font-size:10px;color:var(--text-soft);margin-bottom:2px;}
+  .vital-item .vi-label{font-size:11px;color:var(--text-soft);margin-top:4px;}
+  .vital-item .vi-trend{font-size:10px;font-weight:600;margin-top:3px;}
+  .vital-item .vi-trend.up{color:var(--red);}
+  .vital-item .vi-trend.down{color:var(--green);}
+  .vital-item .vi-trend.stable{color:var(--text-soft);}
+  .vital-item.alert{background:#FFF0EE;border:1px solid #F1A9A0;}
+  .vital-item.alert .vi-val{color:var(--red);}
+  .med-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+  .med-item:last-child{border-bottom:none;}
+  .med-name{font-weight:500;color:var(--navy);}
+  .med-dose{font-size:11px;color:var(--text-soft);margin-top:2px;}
+  .med-flag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;}
+  .med-flag.warn{background:#FEF3E2;color:#B5621E;}
+  .med-flag.ok{background:#EAF7F0;color:var(--green);}
+  .wound-timeline{display:flex;flex-direction:column;gap:10px;}
+  .wt-entry{display:flex;gap:10px;}
+  .wt-dot-col{display:flex;flex-direction:column;align-items:center;}
+  .wt-dot{width:9px;height:9px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:3px;}
+  .wt-line{flex:1;width:2px;background:var(--border);margin:4px 0;}
+  .wt-content{flex:1;padding-bottom:10px;}
+  .wt-date{font-size:10px;color:var(--text-soft);margin-bottom:2px;}
+  .wt-text{font-size:12.5px;color:var(--navy);font-weight:500;}
+  .wt-detail{font-size:11.5px;color:var(--text-soft);margin-top:2px;}
+  .action-plan{background:var(--teal-light);border:1.5px solid #8EC8BF;border-radius:9px;padding:13px 14px;font-size:12.5px;}
+  .action-plan h4{font-weight:600;color:var(--navy);margin-bottom:8px;font-size:12.5px;}
+  .ap-item{display:flex;gap:7px;margin-bottom:5px;align-items:flex-start;font-size:12px;}
+  .ap-item .check{color:var(--teal);font-size:12px;flex-shrink:0;margin-top:1px;}
+
+  /* EMR MODAL */
+  .emr-overlay{display:none;position:fixed;inset:0;background:rgba(13,33,55,0.6);z-index:999;align-items:center;justify-content:center;}
+  .emr-overlay.open{display:flex;}
+  .emr-modal{background:#fff;border-radius:15px;width:580px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:fadeIn 0.22s ease;}
+  .emr-modal-header{background:var(--navy);color:#fff;padding:15px 20px;border-radius:15px 15px 0 0;display:flex;justify-content:space-between;align-items:flex-start;}
+  .emr-modal-header h3{font-size:14px;font-weight:600;margin-bottom:2px;}
+  .emr-modal-header .sub{font-size:11px;color:rgba(255,255,255,0.5);}
+  .emr-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:25px;height:25px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .emr-close:hover{background:rgba(255,255,255,0.28);}
+  .emr-modal-body{padding:16px 20px;}
+  .emr-source-badge{display:inline-flex;align-items:center;gap:5px;background:var(--teal-light);border:1px solid #8EC8BF;color:var(--teal);font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;margin-bottom:11px;}
+  .emr-field{margin-bottom:9px;}
+  .emr-field-label{font-size:10px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+  .emr-field-value{font-size:12px;color:var(--navy);background:var(--sand);border-radius:7px;padding:8px 10px;line-height:1.5;}
+  .emr-field-value.flag{background:#FFF0EE;color:var(--red);font-weight:500;}
+  .emr-record-id{font-size:10px;color:var(--text-soft);font-family:'Courier New',monospace;margin-top:12px;padding-top:9px;border-top:1px solid var(--border);line-height:1.6;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">Care<span>Flow</span> AI</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab(0)">🔔 Outbound Nudges <span class="mvp-pill">MVP 1</span></button>
+    <button class="nav-tab" onclick="switchTab(1)">💬 Inbound Scheduler <span class="mvp-pill">MVP 2</span></button>
+    <button class="nav-tab" onclick="switchTab(2)">⚠️ Ops Workbench <span class="nav-badge">3</span><span class="mvp-pill">MVP 2</span></button>
+    <button class="nav-tab" onclick="switchTab(3)">📄 OCR Scanner <span class="mvp-pill">MVP 3</span></button>
+    <button class="nav-tab" onclick="switchTab(4)">🩺 Clinical Snapshot <span class="mvp-pill">MVP 3</span></button>
+  </div>
+</nav>
+
+<!-- TAB 1: OUTBOUND NUDGE CENTRE -->
+<div class="panel active" id="panel-0">
+  <div class="nudge-layout">
+    <div class="nudge-list-col">
+      <div class="nudge-list-header">
+        <h3>Today's Outbound Messages</h3>
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="filterNudges('all',this)">All</button>
+          <button class="filter-btn" onclick="filterNudges('prep',this)">Prep Reminders</button>
+          <button class="filter-btn" onclick="filterNudges('action',this)">Action Plans</button>
+          <button class="filter-btn" onclick="filterNudges('birthday',this)">Birthdays</button>
+        </div>
+      </div>
+      <div class="nudge-list" id="nudgeList"></div>
+    </div>
+    <div class="nudge-detail-col" id="nudgeDetail"></div>
+  </div>
+</div>
+
+<!-- TAB 2: INBOUND CHATBOT -->
+<div class="panel" id="panel-1">
+  <div class="chat-layout">
+    <div class="chat-sidebar">
+      <div class="sidebar-section">
+        <h4>Active Patient</h4>
+        <div class="patient-card">
+          <div class="name">Mdm Tan Bee Hoon</div>
+          <div class="detail">77 yrs · NRIC: S4712***B</div>
+          <div class="tags">
+            <span class="tag blue">Diabetic Type 2</span>
+            <span class="tag red">Warfarin</span>
+            <span class="tag amber">Fall Risk</span>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <h4>Upcoming Appointments</h4>
+        <div class="appt-item"><div><div class="appt-name">Endocrinology</div><div class="appt-date">Tue 31 Mar · SGH · 10:30 AM</div></div><span class="appt-status confirmed">Confirmed</span></div>
+        <div class="appt-item"><div><div class="appt-name">Fasting Blood Draw</div><div class="appt-date">Tue 31 Mar · Lab 3 · 8:00 AM</div></div><span class="appt-status confirmed">Confirmed</span></div>
+        <div class="appt-item"><div><div class="appt-name">Ophthalmology</div><div class="appt-date">Fri 10 Apr · SNEC · 2:00 PM</div></div><span class="appt-status pending">Pending</span></div>
+      </div>
+      <div class="sidebar-section">
+        <h4>Caregiver</h4>
+        <div style="font-size:12.5px"><strong>Chua Li Ling</strong><br><span style="color:var(--text-soft)">Daughter · Proxy Access Active</span><br><span style="color:var(--teal);font-size:11.5px;font-weight:500">✓ Singpass Linked</span></div>
+      </div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-header">
+        <div class="chat-avatar">🤖</div>
+        <div><div class="title">CareFlow Assistant</div><div class="sub">Online · SGH Polyclinic</div></div>
+      </div>
+      <!-- NEW: Rules-First Intake Steps Tracker -->
+      <div class="intake-steps" id="intakeSteps">
+        <span class="intake-label">Intake:</span>
+        <span class="intake-step active" id="step-identity">🪪 1. Verify Identity</span>
+        <span class="intake-sep">›</span>
+        <span class="intake-step" id="step-appt">📅 2. Identify Appointment</span>
+        <span class="intake-sep">›</span>
+        <span class="intake-step" id="step-reason">💬 3. Capture Reason</span>
+        <span class="intake-sep">›</span>
+        <span class="intake-step" id="step-decision">✅ Decision</span>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="msg bot fade-in">
+          <div class="msg-avatar">🤖</div>
+          <div><div class="msg-bubble">Hi Li Ling 👋 I can help with Mdm Tan's appointments. What do you need?</div><div class="msg-time">9:14 AM</div></div>
+        </div>
+        <div class="msg-qr-row fade-in">
+          <button class="qr-btn" onclick="userSays('I need to reschedule an appointment')">Reschedule appointment</button>
+          <button class="qr-btn" onclick="userSays('Check prep instructions')">Check prep instructions</button>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <input class="chat-input" id="chatInput" type="text" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendUserMsg()">
+        <button class="send-btn" onclick="sendUserMsg()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: OPS WORKBENCH -->
+<div class="panel" id="panel-2">
+  <div class="ops-layout">
+    <div class="ops-queue">
+      <div class="ops-queue-header">
+        <h3>Exception Workbench</h3>
+        <div class="sub">Cases the AI could not handle automatically</div>
+        <div class="ops-stats">
+          <div class="ops-stat red"><div class="val">3</div><div class="lbl">Pending</div></div>
+          <div class="ops-stat amber"><div class="val">1</div><div class="lbl">In Review</div></div>
+          <div class="ops-stat"><div class="val">12</div><div class="lbl">Resolved</div></div>
+        </div>
+      </div>
+      <div class="ops-list">
+        <div class="ops-item active" onclick="selectCase(0)">
+          <div class="unread-dot"></div>
+          <div class="ops-item-top"><div><div class="ops-item-name">Lim Ah Kow · M/68</div><div class="ops-item-type">Endoscopy — Reschedule Request</div></div><span class="severity high">High</span></div>
+          <div class="ops-item-reason">⚠️ Warfarin detected. Cannot self-serve — requires pharmacist review.</div>
+          <div class="ops-item-time">Flagged 9:02 AM · Waiting 22 min</div>
+        </div>
+        <div class="ops-item" onclick="selectCase(1)">
+          <div class="unread-dot"></div>
+          <div class="ops-item-top"><div><div class="ops-item-name">Priya Nair · F/54</div><div class="ops-item-type">Fasting Blood Draw — Arrival</div></div><span class="severity medium">Medium</span></div>
+          <div class="ops-item-reason">🍵 Patient ate at 7 AM. Linked review at 10:30 AM may need to shift.</div>
+          <div class="ops-item-time">Flagged 9:18 AM · Waiting 8 min</div>
+        </div>
+        <div class="ops-item" onclick="selectCase(2)">
+          <div class="ops-item-top"><div><div class="ops-item-name">Ahmad bin Salleh · M/72</div><div class="ops-item-type">New Patient Registration</div></div><span class="severity low">Low</span></div>
+          <div class="ops-item-reason">📋 Referral letter missing. Cannot complete triage without it.</div>
+          <div class="ops-item-time">Flagged 9:24 AM · Waiting 2 min</div>
+        </div>
+      </div>
+    </div>
+    <div class="ops-detail" id="opsDetail"></div>
+  </div>
+</div>
+
+<!-- TAB 4: OCR SCANNER -->
+<div class="panel" id="panel-3">
+  <div class="ocr-layout">
+    <div class="ocr-left">
+      <div class="ocr-header">
+        <h2>OCR Document Scanner</h2>
+        <p style="margin-top:6px">Upload a private specialist memo or discharge summary. CareFlow AI will extract key clinical data and create a structured summary for the polyclinic doctor — bridging the public-private data silo.</p>
+      </div>
+      <div class="upload-zone" id="uploadZone">
+        <div class="uz-icon">📄</div>
+        <div class="uz-title">Drop specialist memo here</div>
+        <div class="uz-sub">JPG, PNG or PDF · Max 10 MB</div>
+        <input type="file" accept="image/*,.pdf" onchange="handleUpload(this)">
+      </div>
+      <div class="doc-preview hidden" id="docPreview">
+        <div class="doc-preview-header">📋 Uploaded: Mount Alvernia Specialist Memo</div>
+        <div class="doc-content" id="docContent">Loading…</div>
+      </div>
+      <button class="scan-btn" id="scanBtn" onclick="runOCR()" disabled>
+        <span>🔍</span> Extract Clinical Data
+      </button>
+    </div>
+    <div class="ocr-right">
+      <div class="processing-overlay" id="processingOverlay">
+        <div class="spinner"></div>
+        <div>Analysing document with AI…</div>
+      </div>
+      <div id="ocrPlaceholder" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text-soft);text-align:center;gap:12px">
+        <div style="font-size:44px;opacity:0.3">🔬</div>
+        <div style="font-size:14px;font-weight:500">Extracted data will appear here</div>
+        <div style="font-size:12.5px;max-width:280px;line-height:1.5">Upload and scan a document to see AI-extracted medications, diagnoses, and clinical instructions</div>
+      </div>
+      <div class="ocr-result" id="ocrResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: CLINICAL SNAPSHOT -->
+<div class="panel" id="panel-4">
+  <div class="clin-layout">
+    <div class="clin-topbar">
+      <div>
+        <h2>Mdm Tan Bee Hoon · 77F</h2>
+        <div class="sub">NRIC S4712***B · Endocrinology Review · Dr Rajesh Kumar</div>
+      </div>
+      <div class="timer-badge">
+        <span>Pre-consult snapshot</span>
+        <span class="count" id="timerCount">30</span>
+        <span>sec</span>
+      </div>
+    </div>
+    <div class="risk-banner">
+      <div class="risk-icon">⚠️</div>
+      <div>
+        <div class="risk-title">MEDICATION INTERACTION ALERT</div>
+        <div class="risk-body">Warfarin (Mount Alvernia prescription) + Metformin (SGH prescription). Last INR: <strong>3.4</strong> (above target 2.0–3.0). Review dosage before prescribing any new anticoagulants or NSAIDs.</div>
+        <div class="traceability-note" onclick="openEMR('warfarin')">🔗 View source records</div>
+      </div>
+    </div>
+    <div class="clin-grid">
+      <div class="clin-col">
+        <div class="clin-card">
+          <div class="clin-card-header">📊 Latest Lab Results</div>
+          <div class="clin-card-body">
+            <div class="vitals-grid">
+              <div class="vital-item alert">
+                <div class="vi-unit">mmol/mol</div>
+                <div class="vi-val">78</div>
+                <div class="vi-label">HbA1c</div>
+                <div class="vi-trend up">↑ from 72 (Dec 2025)</div>
+              </div>
+              <div class="vital-item alert">
+                <div class="vi-unit">INR</div>
+                <div class="vi-val">3.4</div>
+                <div class="vi-label">Warfarin Level</div>
+                <div class="vi-trend up">↑ above target range</div>
+              </div>
+              <div class="vital-item">
+                <div class="vi-unit">mmHg</div>
+                <div class="vi-val">138/86</div>
+                <div class="vi-label">Blood Pressure</div>
+                <div class="vi-trend stable">→ Stable</div>
+              </div>
+              <div class="vital-item">
+                <div class="vi-unit">mg/dL</div>
+                <div class="vi-val">6.8</div>
+                <div class="vi-label">Creatinine</div>
+                <div class="vi-trend down">↓ Improving</div>
+              </div>
+            </div>
+            <div class="traceability-note" onclick="openEMR('labs')" style="margin-top:9px">🔗 View lab records in EMR</div>
+          </div>
+        </div>
+        <div class="clin-card">
+          <div class="clin-card-header">🩹 Diabetic Foot Ulcer — Progress Across Visits</div>
+          <div class="clin-card-body">
+            <div class="wound-timeline">
+              <div class="wt-entry"><div class="wt-dot-col"><div class="wt-dot" style="background:var(--red)"></div><div class="wt-line"></div></div><div class="wt-content"><div class="wt-date">28 Mar 2026 — Last visit</div><div class="wt-text">Left foot plantar ulcer — Grade 2</div><div class="wt-detail">3.2 × 2.1 cm. Moderate exudate. Silver dressing applied. No osteomyelitis on X-ray.</div></div></div>
+              <div class="wt-entry"><div class="wt-dot-col"><div class="wt-dot" style="background:var(--amber)"></div><div class="wt-line"></div></div><div class="wt-content"><div class="wt-date">14 Mar 2026</div><div class="wt-text">Left foot plantar ulcer — Grade 2</div><div class="wt-detail">3.8 × 2.3 cm. Showing early improvement. Alginate dressing changed.</div></div></div>
+              <div class="wt-entry"><div class="wt-dot-col"><div class="wt-dot" style="background:var(--green)"></div></div><div class="wt-content"><div class="wt-date">28 Feb 2026 — Initial presentation</div><div class="wt-text">4.1 × 2.5 cm</div><div class="wt-detail">Wound debrided. Diabetic footwear advised.</div></div></div>
+            </div>
+            <div class="traceability-note" onclick="openEMR('wound')" style="margin-top:7px">🔗 Verify wound records in EMR</div>
+          </div>
+        </div>
+      </div>
+      <div class="clin-col">
+        <div class="clin-card">
+          <div class="clin-card-header">💊 Active Medications — 2 institutions</div>
+          <div class="clin-card-body">
+            <div class="med-item"><div><div class="med-name">Metformin 850mg</div><div class="med-dose">Twice daily · SGH · Jan 2024</div></div><span class="med-flag ok">SGH</span></div>
+            <div class="med-item"><div><div class="med-name">Warfarin 3mg</div><div class="med-dose">Once daily · Mount Alvernia · Feb 2026</div></div><span class="med-flag warn">⚠ Private</span></div>
+            <div class="med-item"><div><div class="med-name">Amlodipine 5mg</div><div class="med-dose">Once daily · SGH · Mar 2023</div></div><span class="med-flag ok">SGH</span></div>
+            <div class="med-item"><div><div class="med-name">Atorvastatin 20mg</div><div class="med-dose">Nightly · SGH · Mar 2023</div></div><span class="med-flag ok">SGH</span></div>
+            <div class="traceability-note" onclick="openEMR('warfarin')">🔗 View sources (SGH + Mount Alvernia)</div>
+          </div>
+        </div>
+        <div class="clin-card">
+          <div class="clin-card-header">✅ AI-Suggested Focus for Today</div>
+          <div class="clin-card-body">
+            <div class="action-plan">
+              <h4>All items traceable to verified source records</h4>
+              <div class="ap-item"><span class="check">⚡</span><span>HbA1c rising (78, up from 72) — consider adjusting diabetes medication</span></div>
+              <div class="ap-item"><span class="check">⚡</span><span>INR 3.4 is above safe range — review Warfarin dose before prescribing anything new</span></div>
+              <div class="ap-item"><span class="check">✓</span><span>Foot ulcer shrinking across 3 visits — confirm dressing plan</span></div>
+              <div class="ap-item"><span class="check">✓</span><span>Reinforce fasting glucose monitoring at home</span></div>
+              <div class="ap-item"><span class="check">✓</span><span>Send simplified action plan to caregiver after visit</span></div>
+            </div>
+            <div class="traceability-note" onclick="openEMR('checklist')" style="margin-top:7px">🔗 View AI reasoning & sources</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EMR MODAL -->
+<div class="emr-overlay" id="emrOverlay" onclick="if(event.target===this)closeEMR()">
+  <div class="emr-modal">
+    <div class="emr-modal-header">
+      <div><h3 id="emrTitle"></h3><div class="sub" id="emrSubtitle"></div></div>
+      <button class="emr-close" onclick="closeEMR()">✕</button>
+    </div>
+    <div class="emr-modal-body" id="emrBody"></div>
+  </div>
+</div>
+
+<script>
+// TAB SWITCH
+function switchTab(idx){
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  if(idx===4)startTimer();
+}
+
+// ═══════════════════════════
+// TAB 1: OUTBOUND NUDGE CENTRE
+// ═══════════════════════════
+const nudgeData=[
+  {id:0,name:'Mdm Tan Bee Hoon',type:'prep',typeLabel:'Prep Reminder',appt:'Endocrinology · 31 Mar · 10:30 AM',status:'sent',icon:'🔔',time:'Sent 8:00 AM',
+   msg:"Hi Li Ling, this is a reminder for Mdm Tan's Endocrinology appointment *tomorrow at 10:30 AM* (SGH Clinic 4B).\n\n⚠️ *As required by Dr Rajesh Kumar:* Mdm Tan must fast from 10 PM tonight — no food or drinks (plain water is fine) before the 8:00 AM blood draw.\n\nAuntie, jangan makan lah! 🙏\n\nReply RESCHEDULE if you need to change this appointment.",
+   sendTime:'Sent today · 8:00 AM',read:'✓✓ Read 8:03 AM',
+   personalization:[
+     {icon:'🩺',text:'Dr Rajesh Kumar\'s standing fasting protocol retrieved from EMR for this procedure type'},
+     {icon:'🔗',text:'Endocrinology review is linked to a blood draw — single reminder covers both, no duplication'},
+     {icon:'👩',text:'Message addressed to caregiver Li Ling (proxy contact) — not sent to Mdm Tan directly, as confirmed in patient preferences'},
+     {icon:'⏰',text:'Sent at 8:00 AM, 26 hours before appointment — within the optimal 24–48h reminder window'},
+     {icon:'🇸🇬',text:'Singlish closing ("Auntie, jangan makan lah") personalised for Malay-speaking household context'}
+   ]},
+  {id:1,name:'Lim Cheng Huat',type:'prep',typeLabel:'Prep Reminder',appt:'Fasting Blood Draw · 1 Apr · 7:30 AM',status:'pending',icon:'⏳',time:'Scheduled 8:00 AM tomorrow',
+   msg:"Hi, reminder for your blood test *tomorrow at 7:30 AM* (Lab 3, Level 2).\n\n⚠️ *Fasting required from 10 PM tonight.* No food or drinks except plain water.\n\nPlease bring your NRIC and appointment card. Arrive 15 min early.\n\nReply RESCHEDULE if you need to change.",
+   sendTime:'Scheduled for 8:00 AM tomorrow',read:'Not sent yet',
+   personalization:[
+     {icon:'🩸',text:'Fasting blood draw requires 10PM start — system computed from 7:30 AM appointment time automatically'},
+     {icon:'📞',text:'Patient is primary contact (no caregiver proxy linked) — message sent directly to patient'},
+     {icon:'⏰',text:'Scheduled for 8:00 AM tomorrow — 23.5 hours before appointment'}
+   ]},
+  {id:2,name:'Siti Rahimah bte Yusof',type:'action',typeLabel:'Post-Consult Action Plan',appt:'Wound Care Review · completed 30 Mar',status:'sent',icon:'📋',time:'Sent 11:45 AM',
+   msg:"Hi Siti, here is your action plan from today's wound care visit with Dr Chen:\n\n✅ Change dressing every 2 days\n✅ Keep wound dry — no soaking\n✅ Wear prescribed diabetic footwear at all times\n✅ Check blood sugar every morning and record it\n⚠️ Return immediately if wound becomes red, swells or smells unusual\n\n*Your next appointment:* 13 Apr · Wound Care Clinic · 9:00 AM",
+   sendTime:'Sent today · 11:45 AM',read:'✓✓ Read 11:52 AM',
+   personalization:[
+     {icon:'🩺',text:'Action plan generated from Dr Chen\'s consultation notes — not a generic template'},
+     {icon:'📅',text:'Next appointment date pulled from EMR and included automatically'},
+     {icon:'⚠️',text:'Emergency warning threshold personalised for Grade 2 diabetic foot ulcer protocol'},
+     {icon:'⏱',text:'Sent 3 minutes after consultation closed — minimises patient memory fade'}
+   ]},
+  {id:3,name:'Wong Ah Keng',type:'birthday',typeLabel:'Birthday Message',appt:'Birthday today 🎂',status:'sent',icon:'🎂',time:'Sent 9:00 AM',
+   msg:"Happy Birthday Mdm Wong! 🎂\n\nWishing you a wonderful day and good health always. The team at SGH Polyclinic Clinic 4B is thinking of you.\n\nStay well and see you at your next visit!\n\n— Dr Rajesh Kumar & the CareFlow team",
+   sendTime:'Sent today · 9:00 AM',read:'✓✓ Read 9:04 AM',
+   personalization:[
+     {icon:'🎂',text:'DOB retrieved from patient profile — birthday detected automatically, no manual scheduling'},
+     {icon:'👨‍⚕️',text:'Doctor name personalised to Mdm Wong\'s primary physician (Dr Rajesh Kumar)'},
+     {icon:'🏥',text:'Clinic name and location included so message feels from her actual care team, not generic corporate'},
+     {icon:'⏰',text:'Sent at 9:00 AM — respectful morning timing, not too early'}
+   ]},
+  {id:4,name:'Rajan s/o Krishnan',type:'prep',typeLabel:'Prep Reminder',appt:'Ultrasound · 1 Apr · 2:00 PM',status:'pending',icon:'⏳',time:'Scheduled 2:00 PM tomorrow',
+   msg:"Hi, reminder for your abdominal ultrasound *tomorrow at 2:00 PM* (Radiology, Level 3).\n\n⚠️ *Do not eat or drink for 4 hours before* your appointment (from 10 AM onwards).\n\nPlease bring your referral letter and NRIC.\n\nReply RESCHEDULE if you need to change.",
+   sendTime:'Scheduled for 2:00 PM tomorrow',read:'Not sent yet',
+   personalization:[
+     {icon:'🔬',text:'Abdominal ultrasound requires 4-hour (not 10-hour) fast — CareFlow used procedure-specific prep protocol, not a generic fasting template'},
+     {icon:'📋',text:'Referral letter reminder added because procedure type = Radiology, which requires a physical referral at SGH'}
+   ]},
+  {id:5,name:'Ng Boon Huat',type:'action',typeLabel:'Post-Consult Action Plan',appt:'Diabetes Review · completed 30 Mar',status:'failed',icon:'❌',time:'Failed 10:30 AM',
+   msg:'Message failed to deliver — patient phone number may have changed. Please update contact details and resend manually.',
+   sendTime:'Failed · 10:30 AM',read:'Delivery failed — staff action needed',
+   personalization:[
+     {icon:'❌',text:'Delivery failure detected immediately — logged to activity feed for staff follow-up'},
+     {icon:'🔒',text:'Message was not re-attempted automatically (could cause duplicate) — staff must verify number first'}
+   ]},
+];
+
+const activityLog=[
+  {time:'08:00',dot:'green',text:'Prep reminders sent automatically to 3 patients for tomorrow\'s appointments'},
+  {time:'09:00',dot:'green',text:'Birthday message sent to Wong Ah Keng'},
+  {time:'09:02',dot:'amber',text:'Escalated: Lim Ah Kow — Warfarin risk detected, cannot auto-reschedule → Ops Workbench'},
+  {time:'09:18',dot:'amber',text:'Escalated: Priya Nair — prep failure, linked appointment at risk → Ops Workbench'},
+  {time:'10:30',dot:'red',text:'Delivery failed: Ng Boon Huat action plan — number not reachable'},
+  {time:'11:45',dot:'green',text:'Post-consult action plan sent to Siti Rahimah after wound care visit'},
+];
+
+let activeFilter='all',activeNudge=0;
+
+function filterNudges(type,btn){
+  activeFilter=type;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNudgeList();
+}
+
+function renderNudgeList(){
+  const list=document.getElementById('nudgeList');
+  const filtered=activeFilter==='all'?nudgeData:nudgeData.filter(n=>n.type===activeFilter);
+  list.innerHTML=filtered.map(n=>`
+    <div class="nudge-item ${n.id===activeNudge?'active':''}" onclick="selectNudge(${n.id})">
+      <div class="nudge-item-top">
+        <div><div class="nudge-item-name">${n.icon} ${n.name}</div><div class="nudge-item-type">${n.typeLabel}</div></div>
+        <span class="tag ${n.status==='sent'?'green':n.status==='pending'?'amber':'red'}">${n.status==='sent'?'✓ Sent':n.status==='pending'?'⏳ Scheduled':'✗ Failed'}</span>
+      </div>
+      <div class="nudge-item-time">📅 ${n.appt} · ${n.time}</div>
+    </div>`).join('');
+}
+
+function selectNudge(id){
+  activeNudge=id;
+  renderNudgeList();
+  const n=nudgeData.find(x=>x.id===id);
+  const detail=document.getElementById('nudgeDetail');
+  detail.innerHTML=`<div class="fade-in" style="display:flex;flex-direction:column;gap:18px">
+    <div class="stat-bar">
+      <div class="stat-pill"><div><div class="sp-val green">4</div><div class="sp-lbl">Sent today</div></div></div>
+      <div class="stat-pill"><div><div class="sp-val amber">2</div><div class="sp-lbl">Scheduled</div></div></div>
+      <div class="stat-pill"><div><div class="sp-val red">1</div><div class="sp-lbl">Failed</div></div></div>
+      <div class="stat-pill"><div><div class="sp-val">0</div><div class="sp-lbl">Staff hours used</div></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">
+      <div>
+        <div style="font-size:11px;color:var(--text-soft);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:9px">Message Preview — Patient's Device</div>
+        <div class="nudge-phone-mock">
+          <div class="phone-status"><span>9:41</span><span>●●● SGH</span></div>
+          <div class="phone-app-bar"><div class="phone-app-icon">💬</div><div><div class="phone-app-name">CareFlow · SGH</div><div class="phone-app-sub">Healthcare assistant</div></div></div>
+          <div class="phone-msg">${n.msg.replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<strong>$1</strong>')}</div>
+          <div class="phone-msg-time">${n.sendTime}</div>
+          <div class="phone-read">${n.read}</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text-soft);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:9px">Personalisation Engine — Why This Message</div>
+        <div class="pers-box">
+          <div class="pers-box-header">🧠 CareFlow Personalisation Rationale</div>
+          <div class="pers-box-body">
+            ${n.personalization.map(p=>`<div class="pers-reason"><span class="pers-reason-icon">${p.icon}</span><span>${p.text}</span></div>`).join('')}
+            <div class="pers-quality">
+              <span class="pers-qcheck">✓ No duplicates</span>
+              <span class="pers-qcheck">✓ Name verified</span>
+              <span class="pers-qcheck">✓ Contact confirmed</span>
+              ${n.status==='failed'?'<span style="font-size:11px;color:var(--red);font-weight:500;display:flex;align-items:center;gap:4px">✗ Delivery failed</span>':'<span class="pers-qcheck">✓ Delivered</span>'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--text-soft);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:9px">Today's Bot Activity Log — All Actions Taken Automatically</div>
+      <div class="activity-log">
+        ${activityLog.map(r=>`<div class="log-row"><span class="log-time">${r.time}</span><div class="log-dot ${r.dot}"></div><span class="log-text">${r.text}</span><span class="log-tag auto">AUTO</span></div>`).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--text-soft);margin-top:7px">All actions were taken automatically. No staff approval was required. This log exists so staff can spot-check for errors at any time.</div>
+    </div>
+  </div>`;
+}
+
+renderNudgeList();
+selectNudge(0);
+
+// ═══════════════════════════
+// TAB 2: CHAT STATE MACHINE + INTAKE STEPS
+// ═══════════════════════════
+let chatState='idle';
+
+function updateIntakeStep(step){
+  // step: 'identity' | 'appt' | 'reason' | 'decision'
+  const steps=['identity','appt','reason','decision'];
+  const order=steps.indexOf(step);
+  steps.forEach((s,i)=>{
+    const el=document.getElementById('step-'+s);
+    if(!el)return;
+    el.classList.remove('done','active');
+    if(i<order)el.classList.add('done');
+    else if(i===order)el.classList.add('active');
+  });
+}
+
+function userSays(text){
+  addMessage(text,'user');
+  setTimeout(()=>showTyping(()=>advanceChat(text)),500);
+}
+
+function sendUserMsg(){
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value='';
+  userSays(text);
+}
+
+function advanceChat(text){
+  const lower=text.toLowerCase();
+  if(chatState==='idle'){
+    if(lower.includes('reschedule')){
+      chatState='verify_nric';
+      updateIntakeStep('identity');
+      botSeq([{type:'text',text:"To access Mdm Tan's records, I need to verify your identity first.\n\nPlease enter <strong>Mdm Tan's NRIC number</strong>."}]);
+    } else if(lower.includes('prep')||lower.includes('instruction')){
+      botSeq([{type:'alert',title:'Prep Instructions — Endocrinology 31 Mar',body:'<strong>As required by Dr Rajesh Kumar:</strong><br><br>• Fast from 10:00 PM the night before<br>• No food or drink except plain water<br>• Continue all regular medications<br>• Bring NRIC, appointment card, and any specialist letters<br>• Arrive 30 min early for blood draw at Lab 3 (Level 2)'}]);
+    } else {
+      botSeq([{type:'text',text:"I can help with Mdm Tan's appointments. What do you need?"}]);
+      botSeq([{type:'quickreplies',options:['Reschedule appointment','Check prep instructions']}]);
+    }
+    return;
+  }
+  if(chatState==='verify_nric'){
+    chatState='select_appointment';
+    updateIntakeStep('appt');
+    botSeq([
+      {type:'text',text:"✅ Identity confirmed — <strong>Tan Bee Hoon (S4712***B)</strong>, proxy access verified for Chua Li Ling.\n\nWhich appointment do you need to reschedule?"},
+      {type:'quickreplies',options:['Endocrinology · Tue 31 Mar · 10:30 AM','Ophthalmology · Fri 10 Apr · 2:00 PM']}
+    ]);
+    return;
+  }
+  if(chatState==='select_appointment'){
+    chatState='select_reason';
+    updateIntakeStep('reason');
+    botSeq([
+      {type:'text',text:"Got it — <strong>Endocrinology Review (31 Mar)</strong>.\n\nBefore I search for slots, could you tell me the reason for the change? This helps me check if any clinical rules apply."},
+      {type:'quickreplies',options:['Family schedule conflict','Mdm Tan is unwell','Other']}
+    ]);
+    return;
+  }
+  if(chatState==='select_reason'){
+    chatState='awaiting_slot';
+    updateIntakeStep('decision');
+    botSeq([{type:'text',text:"Checking records and availability…"}]);
+    setTimeout(()=>{
+      botSeq([
+        {type:'text',text:"⚠️ <strong>Linked appointment detected.</strong>\n\nThe Endocrinology Review on 31 Mar is linked to a <strong>fasting blood draw at 8:00 AM the same morning</strong>. The lab results are needed for the review, so both must move together.\n\nDr Rajesh Kumar is available <em>Mon / Wed / Fri mornings only.</em> Here are the next two available slots:"},
+        {type:'quickreplies',options:['Wed 2 Apr · 10:30 AM (+ blood draw 8 AM)','Fri 4 Apr · 10:00 AM (+ blood draw 8 AM)']}
+      ]);
+    },1400);
+    return;
+  }
+  if(chatState==='awaiting_slot'){
+    chatState='awaiting_confirm';
+    const slot=lower.includes('2 apr')?'Wed 2 Apr':'Fri 4 Apr';
+    const time=lower.includes('2 apr')?'10:30 AM':'10:00 AM';
+    botSeq([{type:'confirmcard',data:{
+      doctor:'Dr Rajesh Kumar — Endocrinology',
+      newDate:`${slot} 2026 · ${time}`,
+      bloodDraw:`${slot} 2026 · 8:00 AM (auto-linked)`,
+      location:'SGH Clinic 4B',
+      fasting:'Fast from 10 PM the night before'
+    }}]);
+    return;
+  }
+  if(lower.includes('share')||lower.includes('family')){
+    chatState='idle';
+    updateIntakeStep('identity');
+    botSeq([{type:'text',text:"📤 <strong>Update sent to your Care Team.</strong>\n\nYour siblings now have a secure link with the new dates, prep instructions, and the post-consultation action plan.\n\nIs there anything else I can help with?"}]);
+    return;
+  }
+  chatState='idle';
+  updateIntakeStep('identity');
+  botSeq([{type:'text',text:"I'm here to help with Mdm Tan's appointments."}]);
+  botSeq([{type:'quickreplies',options:['Reschedule appointment','Check prep instructions']}]);
+}
+
+function confirmBooking(btn){
+  btn.closest('.confirm-card').querySelectorAll('button').forEach(b=>b.disabled=true);
+  btn.textContent='✅ Confirmed!';
+  btn.style.background='var(--green)';
+  chatState='share_step';
+  setTimeout(()=>{
+    botSeq([
+      {type:'text',text:"✅ <strong>Done.</strong> Both appointments have been moved.\n\nMdm Tan will receive a prep reminder automatically 24 hours before. Here's what she'll receive:"},
+      {type:'nudge',title:'🔔 Reminder — Appointment Tomorrow',app:'CareFlow · SGH Polyclinic',body:"Dr Rajesh Kumar requires Mdm Tan to fast from 10 PM tonight. No food or drink (except plain water) before the 8:00 AM blood draw. Auntie, jangan makan lah! 🙏"},
+      {type:'text',text:"Would you like to share a summary of this update to your family group?"},
+      {type:'quickreplies',options:['Share to family group','No thanks']}
+    ]);
+  },600);
+}
+
+function botSeq(items){items.forEach((item,i)=>setTimeout(()=>renderBotItem(item),i*700));}
+
+function renderBotItem(item){
+  if(item.type==='text'){addMessage(item.text,'bot');}
+  else if(item.type==='quickreplies'){
+    const msgs=document.getElementById('chatMessages');
+    const row=document.createElement('div');
+    row.className='msg-qr-row fade-in';
+    item.options.forEach(opt=>{
+      const btn=document.createElement('button');
+      btn.className='qr-btn';btn.textContent=opt;
+      btn.onclick=()=>{row.querySelectorAll('.qr-btn').forEach(b=>{b.style.opacity='0.4';b.disabled=true;});userSays(opt);};
+      row.appendChild(btn);
+    });
+    msgs.appendChild(row);msgs.scrollTop=msgs.scrollHeight;
+  } else if(item.type==='confirmcard'){
+    const d=item.data;
+    addRaw(`<div class="confirm-card">
+      <div class="cc-row"><span class="cc-label">Doctor</span><span class="cc-val">${d.doctor}</span></div>
+      <div class="cc-row"><span class="cc-label">New Date</span><span class="cc-val" style="color:var(--teal)">${d.newDate}</span></div>
+      <div class="cc-row"><span class="cc-label">Blood Draw</span><span class="cc-val">${d.bloodDraw}</span></div>
+      <div class="cc-row"><span class="cc-label">Location</span><span class="cc-val">${d.location}</span></div>
+      <div class="cc-row"><span class="cc-label">Prep</span><span class="cc-val" style="color:var(--amber)">⚠️ ${d.fasting}</span></div>
+      <div class="cc-actions"><button class="btn-confirm" onclick="confirmBooking(this)">✓ Confirm</button><button class="btn-cancel">Cancel</button></div>
+    </div>`,'bot');
+  } else if(item.type==='nudge'){
+    addRaw(`<div class="nudge-preview"><div class="np-header">📱 SMS Preview — sent to patient's phone</div><div class="np-app">${item.app}</div><div class="np-title">${item.title}</div><div class="np-body">${item.body}</div></div>`,'bot');
+  } else if(item.type==='alert'){
+    addRaw(`<div class="alert-bubble"><div class="alert-title">⚕️ ${item.title}</div>${item.body}</div>`,'bot');
+  }
+}
+
+function addMessage(text,role){
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className=`msg ${role} fade-in`;
+  const time=new Date().toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=`<div class="msg-avatar">${role==='bot'?'🤖':'👩'}</div><div><div class="msg-bubble">${text}</div><div class="msg-time">${time}</div></div>`;
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+}
+
+function addRaw(html,role){
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className=`msg ${role} fade-in`;
+  div.innerHTML=`<div class="msg-avatar">${role==='bot'?'🤖':'👩'}</div><div>${html}</div>`;
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+}
+
+function showTyping(cb){
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='msg bot fade-in';div.id='typingIndicator';
+  div.innerHTML=`<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+  setTimeout(()=>{div.remove();cb();},900);
+}
+
+// ═══════════════════════════
+// TAB 3: OPS WORKBENCH
+// ═══════════════════════════
+const opsCases=[
+  {name:'Lim Ah Kow',age:'M/68',appt:'Endoscopy · SGH Clinic 7C · 2 Apr 2026 · 11:00 AM',sev:'high',sevLabel:'High Risk',
+   rulesCheck:[
+     {icon:'✅',label:'Identity',value:'NRIC verified via Singpass — Lim Ah Kow (S6112***D)'},
+     {icon:'✅',label:'Appointment',value:'Endoscopy · SGH Clinic 7C · confirmed in EMR'},
+     {icon:'✅',label:'Reason',value:'Family conflict — AM slot preferred — captured'},
+     {icon:'❌',label:'Clinical Rule',value:'Warfarin active (INR 2.8) — endoscopy requires anticoagulant bridge. Self-service BLOCKED.',fail:true},
+   ],
+   risk:{title:'WARFARIN INTERACTION — AI BLOCKED AUTO-RESCHEDULE',body:'Patient is on Warfarin (INR 2.8). Endoscopy requires an anticoagulant bridge protocol — any new date must first be cleared by the pharmacist. CareFlow captured the request but cannot confirm a slot without your approval.'},
+   fields:[{l:'NRIC Verified',v:'✓ S6112***D — Lim Ah Kow',c:'green'},{l:'Appointment',v:'Endoscopy · Clinic 7C',c:''},{l:'Reason',v:'Family conflict — prefers AM slot',c:''},{l:'Warfarin Status',v:'Active · INR 2.8 (tested 20 Mar)',c:'red'},{l:'Prep Confirmed',v:'Not yet',c:'amber'},{l:'Next AM Slot (held)',v:'Mon 6 Apr · 9:30 AM',c:''}],
+   actions:[{label:'✓ Approve & Update EMR',cls:'approve',note:'Confirms Mon 6 Apr slot and flags for pharmacist bridge review'},{label:'📞 Call Patient First',cls:'secondary',note:''},{label:'→ Route to Pharmacist',cls:'secondary',note:''},{label:'✗ Reject & Explain',cls:'danger',note:''}]},
+  {name:'Priya Nair',age:'F/54',appt:'Fasting Blood Draw · Lab 3 · 31 Mar · 8:00 AM',sev:'medium',sevLabel:'Medium',
+   rulesCheck:[
+     {icon:'✅',label:'Identity',value:'NRIC verified via HealthHub — Priya Nair (S7034***F)'},
+     {icon:'✅',label:'Appointment',value:'Fasting Blood Draw + linked Endocrinology Review — both confirmed'},
+     {icon:'❌',label:'Prep Status',value:'Patient self-reported eating at 7:00 AM — fasting window broken.',fail:true},
+     {icon:'⚠️',label:'Linked Risk',value:'Endocrinology Review at 10:30 AM depends on today\'s HbA1c result. Both may need to move.',fail:true},
+   ],
+   risk:{title:'PREP FAILURE — LINKED REVIEW AT RISK',body:'Patient reports eating at 7 AM this morning. The fasting blood draw result will be invalid. Her linked Endocrinology review at 10:30 AM today depends on this result — if the draw is voided, the review may need to be deferred.'},
+   fields:[{l:'NRIC Verified',v:'✓ S7034***F — Priya Nair',c:'green'},{l:'Appointment',v:'Fasting Blood Draw + Linked Review',c:''},{l:'Prep Status',v:'FAILED — ate at 7:00 AM',c:'red'},{l:'Linked Appointment',v:'Endocrinology Review · 10:30 AM today',c:'amber'},{l:'Options',v:'Reschedule both / Consult only / Void draw',c:''}],
+   actions:[{label:'✓ Approve: Reschedule Both',cls:'approve',note:'Moves blood draw + review together to next slot'},{label:'Consult Only (skip labs)',cls:'secondary',note:''},{label:'Void Draw Only',cls:'secondary',note:''},{label:'Escalate to Doctor',cls:'danger',note:''}]},
+  {name:'Ahmad bin Salleh',age:'M/72',appt:'New Patient · General Surgery · 31 Mar · 3:00 PM',sev:'low',sevLabel:'Low',
+   rulesCheck:[
+     {icon:'⚠️',label:'Identity',value:'NRIC presented physically — Singpass not yet linked. Identity unverified digitally.',fail:true},
+     {icon:'✅',label:'Appointment',value:'New Patient · General Surgery · confirmed in system'},
+     {icon:'✅',label:'Reason',value:'Inbound new patient registration — no reschedule reason required'},
+     {icon:'❌',label:'Document Check',value:'Referral letter from Raffles Hospital not presented — required for triage.',fail:true},
+   ],
+   risk:{title:'MISSING REFERRAL LETTER',body:'Patient was referred from Raffles Hospital but has not brought the referral letter. General Surgery cannot complete triage without it. Patient is physically at the counter now.'},
+   fields:[{l:'NRIC',v:'⚠ Presented physically — not yet HealthHub-linked',c:'amber'},{l:'Appointment',v:'New Patient · General Surgery',c:''},{l:'Referral Letter',v:'NOT presented — required for triage',c:'red'},{l:'Patient Location',v:'At the counter now',c:''},{l:'Suggested Action',v:'Request digital copy from Raffles Hospital',c:''}],
+   actions:[{label:'✓ Approve: Request Digital Copy',cls:'approve',note:'Sends automated request to Raffles Hospital patient portal'},{label:'Proceed Without Referral',cls:'secondary',note:''},{label:'Reschedule & Send Reminder',cls:'secondary',note:''},{label:'Escalate to Supervisor',cls:'danger',note:''}]}
+];
+
+let activeCase=0;
+function selectCase(idx){
+  activeCase=idx;
+  document.querySelectorAll('.ops-item').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  document.querySelectorAll('.ops-item .unread-dot').forEach((d,i)=>{if(i===idx)d.remove();});
+  const c=opsCases[idx];
+  document.getElementById('opsDetail').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start" class="fade-in">
+      <div><div style="font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--navy)">${c.name} · ${c.age}</div><div style="font-size:11.5px;color:var(--text-soft);margin-top:2px">${c.appt}</div></div>
+      <span class="severity ${c.sev}">${c.sevLabel}</span>
+    </div>
+
+    <!-- NEW: Rules Check Banner -->
+    <div class="rules-check fade-in">
+      <div class="rules-check-title">🔐 Rules-First Intake Check — 3 golden rules verified before escalation</div>
+      ${c.rulesCheck.map(r=>`
+        <div class="rules-check-row">
+          <span class="rc-icon">${r.icon}</span>
+          <span class="rc-label">${r.label}</span>
+          <span class="${r.fail?'rc-fail':'rc-value'}">${r.value}</span>
+        </div>`).join('')}
+    </div>
+
+    <div class="risk-banner fade-in"><div class="risk-icon">⚠️</div><div><div class="risk-title">${c.risk.title}</div><div class="risk-body">${c.risk.body}</div></div></div>
+    <div class="human-loop-banner fade-in">
+      <div class="hl-icon">👤</div>
+      <div><div class="hl-title">Human-in-the-Loop — Staff Approval Required</div>
+      <div class="hl-body">CareFlow has captured the request and prepared a recommended action. The AI cannot write directly to the EMR at this stage — your approval below confirms the update. This ensures no appointment changes happen without staff awareness.</div></div>
+    </div>
+    <div class="detail-grid fade-in">
+      <div class="detail-card">
+        <h4>AI-Verified Case Summary</h4>
+        ${c.fields.map(f=>`<div class="detail-row"><span class="dl">${f.l}</span><span class="dv ${f.c}">${f.v}</span></div>`).join('')}
+      </div>
+      <div class="detail-card">
+        <h4>Recommended Actions</h4>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          ${c.actions.map(a=>`<div><button class="act-btn ${a.cls}" onclick="handleOpsAction('${a.label}')">${a.label}</button>${a.note?`<div style="font-size:10.5px;color:var(--text-soft);margin-top:3px;padding-left:2px">${a.note}</div>`:''}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="ops-activity-log fade-in">
+      <h4>Audit Trail — CareFlow Actions on this Case</h4>
+      <div class="oal-row"><span class="oal-time">${idx===0?'09:02':idx===1?'09:18':'09:24'}</span><span class="oal-icon">🤖</span><span>AI completed intake (identity · appointment · reason) and flagged exception</span></div>
+      <div class="oal-row"><span class="oal-time">${idx===0?'09:02':idx===1?'09:18':'09:24'}</span><span class="oal-icon">🔒</span><span>Self-service reschedule BLOCKED — ${idx===0?'Warfarin clinical rule':idx===1?'prep failure detected':'referral document missing'}</span></div>
+      <div class="oal-row"><span class="oal-time">${idx===0?'09:02':idx===1?'09:18':'09:24'}</span><span class="oal-icon">📋</span><span>Case summary prepared and routed to Exception Workbench with all context</span></div>
+      <div class="oal-row" style="color:rgba(255,255,255,0.4)"><span class="oal-time">–</span><span class="oal-icon">⏳</span><span>Awaiting staff approval</span></div>
+    </div>`;
+}
+
+function handleOpsAction(action){
+  alert(`Action: "${action}"\n\nIn the live system, this would:\n• Log the decision with your staff ID\n• Notify the patient via SMS\n• Update the appointment record in EMR\n• Close this exception from the queue`);
+}
+
+selectCase(0);
+
+// ═══════════════════════════
+// TAB 4: OCR SCANNER
+// ═══════════════════════════
+const mockDocText=`MOUNT ALVERNIA HOSPITAL
+Specialist Discharge Summary
+
+Patient: TAN BEE HOON
+DOB: 12/03/1949  NRIC: S4712***B
+Date of Discharge: 12 March 2026
+Attending: Dr. Wong Kok Weng (Cardiology)
+
+DIAGNOSIS:
+- Atrial fibrillation (paroxysmal)
+- Type 2 Diabetes Mellitus (known)
+
+NEW MEDICATIONS PRESCRIBED:
+- Warfarin 3mg OD (anticoagulation for AF)
+  Target INR: 2.0-3.0. Review in 2 weeks.
+- Continue existing: Metformin 850mg BD, 
+  Amlodipine 5mg OD, Atorvastatin 20mg ON
+
+IMPORTANT NOTES:
+- Avoid NSAIDs (increased bleeding risk)
+- INR monitoring required monthly
+- Referred back to SGH Endocrinology for 
+  diabetes management
+
+Dr. Wong Kok Weng  MBBS, MRCP
+Mount Alvernia Hospital — Cardiology`;
+
+function handleUpload(input){
+  if(!input.files[0])return;
+  document.getElementById('docPreview').classList.remove('hidden');
+  document.getElementById('docContent').textContent=mockDocText;
+  document.getElementById('scanBtn').disabled=false;
+}
+
+function runOCR(){
+  const overlay=document.getElementById('processingOverlay');
+  const placeholder=document.getElementById('ocrPlaceholder');
+  const result=document.getElementById('ocrResult');
+  placeholder.style.display='none';
+  result.classList.remove('show');
+  overlay.classList.add('show');
+  setTimeout(()=>{
+    overlay.classList.remove('show');
+    result.classList.add('show');
+    result.innerHTML=`
+      <div style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:4px;padding:0 2px">✓ Extraction complete — 97% confidence</div>
+      <div class="result-section fade-in">
+        <div class="result-section-header">👤 Patient Identity</div>
+        <div class="result-row"><span class="rl">Full Name</span><span class="rv">Tan Bee Hoon</span></div>
+        <div class="result-row"><span class="rl">DOB</span><span class="rv">12 March 1949 (77F)</span></div>
+        <div class="result-row"><span class="rl">NRIC (partial)</span><span class="rv">S4712***B</span></div>
+        <div class="result-row"><span class="rl">Source Hospital</span><span class="rv">Mount Alvernia Hospital</span></div>
+        <div class="result-row"><span class="rl">Discharge Date</span><span class="rv">12 March 2026</span></div>
+      </div>
+      <div class="result-section fade-in">
+        <div class="result-section-header">🏥 Diagnosis</div>
+        <div class="result-row"><span class="rl">Primary</span><span class="rv">Atrial Fibrillation (paroxysmal)</span></div>
+        <div class="result-row"><span class="rl">Secondary</span><span class="rv">Type 2 Diabetes Mellitus (known)</span></div>
+        <div class="result-row"><span class="rl">Attending</span><span class="rv">Dr. Wong Kok Weng (Cardiology)</span></div>
+      </div>
+      <div class="result-section fade-in">
+        <div class="result-section-header">💊 Medications Extracted</div>
+        <div class="result-row"><span class="rl">New: Warfarin</span><span class="rv flag">3mg OD ⚠ INR 2.0–3.0 target — monitor monthly</span></div>
+        <div class="result-row"><span class="rl">Continue: Metformin</span><span class="rv">850mg BD</span></div>
+        <div class="result-row"><span class="rl">Continue: Amlodipine</span><span class="rv">5mg OD</span></div>
+        <div class="result-row"><span class="rl">Continue: Atorvastatin</span><span class="rv">20mg ON</span></div>
+        <div class="result-row"><span class="rl">Contraindication</span><span class="rv flag">⚠ Avoid NSAIDs — increased bleeding risk with Warfarin</span></div>
+      </div>
+      <div class="result-section fade-in">
+        <div class="result-section-header">📋 Follow-up Instructions</div>
+        <div class="result-row"><span class="rl">INR Review</span><span class="rv">Within 2 weeks of discharge (by 26 Mar 2026)</span></div>
+        <div class="result-row"><span class="rl">Referred to</span><span class="rv">SGH Endocrinology (diabetes management)</span></div>
+        <div class="result-row"><span class="rl">Confidence</span>
+          <span class="rv"><div class="confidence-bar"><div class="confidence-fill" style="width:0%" data-width="97%"></div></div>97%</span>
+        </div>
+      </div>
+      <button class="scan-btn" style="margin-top:4px" onclick="alert('Summary copied to Mdm Tan\\'s CareFlow profile. It will be shown to Dr Rajesh Kumar before her next consultation.')">
+        📤 Save to Patient Profile & Share with SGH Doctor
+      </button>`;
+    setTimeout(()=>{
+      document.querySelectorAll('.confidence-fill').forEach(el=>{el.style.width=el.dataset.width;});
+    },100);
+  },2200);
+}
+
+// ═══════════════════════════
+// TAB 5: CLINICAL SNAPSHOT TIMER
+// ═══════════════════════════
+let timerRunning=false,timerVal=30,timerInterval;
+function startTimer(){
+  if(timerRunning)return;
+  timerRunning=true;timerVal=30;
+  const el=document.getElementById('timerCount');
+  timerInterval=setInterval(()=>{
+    timerVal--;el.textContent=timerVal;
+    if(timerVal<=10)el.style.color='#E8974A';
+    if(timerVal<=0){clearInterval(timerInterval);el.textContent='⏱';el.style.color='var(--red)';timerRunning=false;}
+  },1000);
+}
+
+// ═══════════════════════════
+// EMR MODAL
+// ═══════════════════════════
+const emrData={
+  labs:{title:'Lab Results — SGH EMR',subtitle:'Record #LB2026-04471 · Verified 28 Mar 2026',source:'🏥 SGH Electronic Medical Records',
+    fields:[{label:'Patient',value:'Tan Bee Hoon · S4712***B · F/77'},{label:'Test Date',value:'28 March 2026 · 08:14 AM'},{label:'Ordering Physician',value:'Dr Rajesh Kumar (Endocrinology, SGH)'},{label:'HbA1c',value:'78 mmol/mol  ⚠️ HIGH — target < 70',flag:true},{label:'INR (Warfarin)',value:'3.4  ⚠️ ABOVE target range (2.0–3.0)',flag:true},{label:'Blood Pressure',value:'138/86 mmHg — stable'},{label:'Creatinine',value:'6.8 mg/dL — ↓ improving from 7.2 (Feb 2026)'},{label:'Previous HbA1c',value:'72 mmol/mol (Dec 2025) · 68 (Sep 2025)'}],
+    recordId:'EMR Record ID: LB2026-04471 · Source: SGH Laboratory Information System · Extracted by CareFlow AI on 26 Mar 2026'},
+  warfarin:{title:'Discharge Summary — Mount Alvernia Hospital',subtitle:'Extracted via CareFlow OCR · 26 Mar 2026',source:'🏥 Mount Alvernia Hospital (Private) — OCR Extracted',
+    fields:[{label:'Patient',value:'Tan Bee Hoon · S4712***B · F/77'},{label:'Discharge Date',value:'12 March 2026'},{label:'Attending Physician',value:'Dr Wong Kok Weng (Cardiology)'},{label:'Diagnosis',value:'Atrial Fibrillation (paroxysmal) + Type 2 DM (known)'},{label:'New Medication',value:'Warfarin 3mg OD — anticoagulation for AF',flag:true},{label:'INR Target',value:'2.0–3.0 · Monthly monitoring required',flag:true},{label:'Contraindication',value:'⚠️ Avoid NSAIDs — increased bleeding risk with Warfarin',flag:true},{label:'Referral',value:'Referred back to SGH Endocrinology for diabetes management'},{label:'OCR Confidence',value:'97% — reviewed by CareFlow AI on 26 Mar 2026'}],
+    recordId:'OCR Source: Mount Alvernia Discharge Summary (physical document). Scanned by caregiver Chua Li Ling on 26 Mar 2026. Stored in CareFlow Temporary Hub (PDPA compliant, minimised data only).'},
+  wound:{title:'Wound Care Records — SGH EMR',subtitle:'Records #WC2026-0441, #WC2026-0312, #WC2026-0228',source:'🏥 SGH Wound Care Clinic — EMR Records',
+    fields:[{label:'Patient',value:'Tan Bee Hoon · S4712***B · F/77'},{label:'Visit 1 — 28 Feb 2026',value:'Initial presentation. Left foot plantar ulcer. 4.1 × 2.5 cm. Wound debrided. Record: #WC2026-0228'},{label:'Visit 2 — 14 Mar 2026',value:'Follow-up. 3.8 × 2.3 cm — improving. Alginate dressing changed. Record: #WC2026-0312'},{label:'Visit 3 — 28 Mar 2026',value:'Grade 2 plantar ulcer. 3.2 × 2.1 cm — continued improvement. Silver dressing. No osteomyelitis. Record: #WC2026-0441'},{label:'Trend',value:'✅ Wound reducing in size across 3 visits (4.1 → 3.8 → 3.2 cm length)'}],
+    recordId:'EMR Records: WC2026-0228, WC2026-0312, WC2026-0441 · SGH Wound Care Information System · Extracted by CareFlow AI on 26 Mar 2026'},
+  checklist:{title:'AI Reasoning — Pre-Consult Checklist',subtitle:'Generated 26 Mar 2026 · Traceable to 3 source records',source:'🤖 CareFlow AI — Source-linked reasoning',
+    fields:[{label:'Item 1 Source',value:'HbA1c 78 mmol/mol (SGH Lab #LB2026-04471, 28 Mar 2026). Previous: 72 (Dec 2025). Rising trend → discuss insulin intensification.'},{label:'Item 2 Source',value:'INR 3.4 (SGH Lab #LB2026-04471) + Warfarin 3mg prescribed (Mount Alvernia Discharge, 12 Mar 2026). INR above target 2.0–3.0 → review dosage urgently.',flag:true},{label:'Item 3 Source',value:'Wound measurement trend: 4.1 → 3.8 → 3.2 cm (SGH Wound Care #WC2026-0228 to #WC2026-0441). Patient self-reported pain improvement.'},{label:'Item 4 Source',value:'Fasting glucose 9.4 mmol/L (SGH Lab #LB2026-04471). Dietary compliance flagged as concern by caregiver in last visit note.'},{label:'Hallucination Risk',value:'✅ All checklist items are directly traceable to verified EMR records or OCR-extracted documents. No items are AI-inferred without a source.'}],
+    recordId:'CareFlow AI Summary generated 26 Mar 2026 07:42 AM. Model: CareFlow Clinical NLP v2.1. All citations verified against SGH EMR + OCR document store.'}
+};
+
+function openEMR(type){
+  const m=emrData[type];
+  document.getElementById('emrTitle').textContent=m.title;
+  document.getElementById('emrSubtitle').textContent=m.subtitle;
+  document.getElementById('emrBody').innerHTML=`
+    <div class="emr-source-badge">🔗 ${m.source}</div>
+    ${m.fields.map(f=>`<div class="emr-field"><div class="emr-field-label">${f.label}</div><div class="emr-field-value ${f.flag?'flag':''}">${f.value}</div></div>`).join('')}
+    <div class="emr-record-id">${m.recordId}</div>`;
+  document.getElementById('emrOverlay').classList.add('open');
+}
+
+function closeEMR(){
+  document.getElementById('emrOverlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
